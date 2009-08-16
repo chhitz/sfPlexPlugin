@@ -1,0 +1,63 @@
+<site site="http://videoportal\.sf\.tv.*"
+      plugin="http://videoportal.sf.tv/flash/videoplayer.swf"
+      initialState="playing"
+      version="1.0">
+  <crop x="0" y="0" width="640" height="360" />
+  <seekbar type="simple">
+    <start x="76"  y="373" />
+    <end   x="355" y="373" />
+    <played>
+      <color rgb="3f1111" />
+    </played>
+  </seekbar>
+  <condition name="paused">
+    <and>
+      <color x="315" y="173" rgb="ffffff" />
+      <color x="315" y="188" rgb="ffffff" />
+      <color x="329" y="180" rgb="ffffff" />
+      <color x="329" y="181" rgb="ffffff" />
+      <color x="320" y="181" rgb="ffffff" />
+      <color x="317" y="176" rgb="ffffff" />
+      <color x="317" y="184" rgb="ffffff" />
+    </and>
+  </condition>
+  <condition name="stopped">
+    <and>
+      <color x="319" y="155" rgb="ffffff" />
+      <color x="319" y="156" rgb="ffffff" />
+      <color x="319" y="157" rgb="ffffff" />
+      <color x="319" y="158" rgb="ffffff" />
+      <color x="319" y="159" rgb="ffffff" />
+      <color x="322" y="152" rgb="f3f3f3" />
+      <color x="322" y="153" rgb="f3f3f3" />
+      <color x="322" y="154" rgb="f3f3f3" />
+      <color x="322" y="155" rgb="f3f3f3" />
+      <color x="322" y="156" rgb="f3f3f3" />
+      <color x="322" y="157" rgb="f3f3f3" />
+      <color x="322" y="158" rgb="f3f3f3" />
+      <color x="322" y="159" rgb="f3f3f3" />
+    </and>
+  </condition>
+  <state name="playing">
+    <event>
+ 	  <condition>
+        <command name="pause" />
+ 	  </condition>
+ 	  <action>
+        <click x="29" y="373" />
+        <goto state="paused" />
+ 	  </action>
+    </event>
+  </state>
+  <state name="paused">
+    <event>
+ 	  <condition>
+        <command name="play" />
+ 	  </condition>
+ 	  <action>
+        <click x="29" y="373" />
+        <goto state="playing" />
+ 	  </action>
+    </event>
+  </state>
+</site>
