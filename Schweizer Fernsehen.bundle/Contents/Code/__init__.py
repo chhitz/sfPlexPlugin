@@ -118,7 +118,8 @@ def GetSendungMenu(sender, url):
 def Search(sender, query):
 	dir = MediaContainer(viewGroup='Details', title2=query)
 	
-	xml = XML.ElementFromURL(SF_SEARCH + '?query=' + query, True)
+	search_url = SF_SEARCH + '?query=' + query
+	xml = XML.ElementFromURL(search_url, True)
 	#sendungen
 	try:
 		sendungen = xml.xpath('//div[@id="search_result_sendungen"]')[0]
@@ -132,17 +133,25 @@ def Search(sender, query):
 		pass
 	
 	#Videos
-	try:
-		sendungen = xml.xpath('//div[@id="search_result_videos"]')[0]
-		for sendung in sendungen.xpath('div[@class="result_video_row"]'):
-			url = SF_ROOT + sendung.xpath('div/h3/a[@class="video_title"]')[0].get('href')
-			title = sendung.xpath('div/h3/a[@class="video_title"]')[0].text
-			description = sendung.xpath('div/p[@class="video_description"]')[0].text + ' (' + sendung.xpath('div/div[@class="fill_from_bottom"]/p')[0].text + ')'
-			try: thumb = sendung.xpath('div/h3/a[@class="sendung_img_wrapper"]/img')[0].get('src')
-			except: thumb = None
-			dir.Append(WebVideoItem(url, title=title, thumb=thumb, summary=description))
-	except:
-		pass
+	new_pages = True
+	while(new_pages):
+		try:
+			sendungen = xml.xpath('//div[@id="search_result_videos"]')[0]
+			for sendung in sendungen.xpath('div[@class="result_video_row"]'):
+				url = SF_ROOT + sendung.xpath('div/h3/a[@class="video_title"]')[0].get('href')
+				title = sendung.xpath('div/h3/a[@class="video_title"]')[0].text
+				description = sendung.xpath('div/p[@class="video_description"]')[0].text + ' (' + sendung.xpath('div/div[@class="fill_from_bottom"]/p')[0].text + ')'
+				try: thumb = sendung.xpath('div/h3/a[@class="sendung_img_wrapper"]/img')[0].get('src')
+				except: thumb = None
+				dir.Append(WebVideoItem(url, title=title, thumb=thumb, summary=description))
+		except:
+			pass
+		try:
+			current_page = int(xml.xpath('//div[@id="skim_results"]/a[@class="act_site"]')[0].text)
+			xml = XML.ElementFromURL(search_url + "&page=" + str(current_page + 1), True)
+		except:
+			#no additional pages
+			new_pages = False
 		
 	return dir
 
