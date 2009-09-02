@@ -1,4 +1,5 @@
 import re, string
+import datetime
 from PMS import *
 from PMS.Objects import *
 from PMS.Shortcuts import *
@@ -63,30 +64,54 @@ def GetSendungenMenu(sender):
 def GetSendungMenu(sender, url):
 	dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
 	xml = XML.ElementFromURL(url, True)
-	sendung = xml.xpath('//div[@class="act_sendung_info"]')[0]
-	video = SF_ROOT + sendung.find('a').get('href')
-	title = sendung.xpath('div/h2/a')[0].text
-	summary = ""
-	for info_item in sendung.xpath('//ul[@class="sendung_beitraege"]/li/a'):
-		summary = summary + info_item.text + "\n"
-	try: thumb = sendung.xpath('a/img')[0].get('src')
-	except: thumb = None
-	dir.Append(WebVideoItem(video, title=title, thumb=thumb, summary=summary))
+	try:
+		sendung = xml.xpath('//div[@class="act_sendung_info"]')[0]
+		video = SF_ROOT + sendung.find('a').get('href')
+		title = sendung.xpath('div/h2/a')[0].text
+		summary = ""
+		for info_item in sendung.xpath('//ul[@class="sendung_beitraege"]/li/a'):
+			summary = summary + info_item.text + "\n"
+		try: thumb = sendung.xpath('a/img')[0].get('src')
+		except: thumb = None
+		dir.Append(WebVideoItem(video, title=title, thumb=thumb, summary=summary))
+	except:
+		pass
 	
-	previous = xml.xpath('//div[@class="prev_sendungen"]')[0]
-	for sendung in previous.xpath('//div[@class="comment_row"]'):
+	new_pages = True
+	while(new_pages):
+		previous = xml.xpath('//div[@class="prev_sendungen"]')[0]
+		for sendung in previous.xpath('//div[@class="comment_row"]'):
+			try:
+				video = SF_ROOT + sendung.xpath('div[@class="left_innner_column"]/a')[0].get('href')
+				title = sendung.xpath('div[@class="sendung_content"]/a/strong')[0].text
+				summary = ""
+				for info_item in sendung.xpath('div[@class="sendung_content"]/ul/li/a'):
+					summary = summary + info_item.text + "\n"
+				try: thumb = sendung.xpath('div/a/img[@class="thumbnail"]')[0].get('src')
+				except: thumb = None
+				dir.Append(WebVideoItem(video, title=title, thumb=thumb, summary=summary))
+			except:
+				pass
 		try:
-			video = SF_ROOT + sendung.xpath('div[@class="left_innner_column"]/a')[0].get('href')
-			title = sendung.xpath('div[@class="sendung_content"]/a/strong')[0].text
-			summary = ""
-			for info_item in sendung.xpath('div[@class="sendung_content"]/ul/li/a'):
-				summary = summary + info_item.text + "\n"
-			try: thumb = sendung.xpath('div/a/img[@class="thumbnail"]')[0].get('src')
-			except: thumb = None
-			dir.Append(WebVideoItem(video, title=title, thumb=thumb, summary=summary))
+			current_page = int(xml.xpath('//p[@class="pagination"]/a[@class="act"]')[0].text)
+			xml = XML.ElementFromURL(url + "&page=" + str(current_page + 1), True)
 		except:
-			pass
-		
+			#no additional pages
+			new_pages = False
+
+	if (len(dir) == 0):
+		dir.Append(DirectoryItem("none", "Keine Sendungen vorhanden."))
+
+	if url.find("&period=") != -1:
+		(url, a, date) = url.rpartition("&period=")
+		(year, a, month) = date.partition("-")
+		current = datetime.date(year=int(year), month=int(month), day=1)
+		prev_month = current - datetime.timedelta(days=29)
+	else:
+		prev_month = datetime.date.today() - datetime.timedelta(days=29)
+	url = url + "&period=" + str(prev_month.year) + "-" + "%02d" % prev_month.month
+	dir.Append(Function(DirectoryItem(GetSendungMenu, title="Sendungen vom Vormonat", url=url), url=url))
+
 	return dir
 
 ####################################################################################################
