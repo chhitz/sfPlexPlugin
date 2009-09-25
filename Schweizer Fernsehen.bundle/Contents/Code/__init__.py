@@ -83,27 +83,43 @@ def SelectVideoMethod(json_result, subtitle=None, thumb=None, art=None, summary=
 			width = int(stream['frame_width'])
 			height = int(stream['frame_height'])
 			return RTMPVideoItem(video, width=width, height=height, title=title, summary=summary, duration=duration, thumb=thumb, art=art, subtitle=subtitle)
+			
+def dump(obj):
+	s = ""
+	for attr in dir(obj):
+		s += "obj.%s = %s" % (attr, getattr(obj, attr)) + "\n"
+	return s
+    	
+def GetSendung(sender, json_url):
+	video_http = HTTP.Request(json_url)
+	video_http = video_http[10:-2]
+	video_json = JSON.ObjectFromString(video_http)
+	#return SelectVideoMethod(video_json)
+	return Redirect(video_json['streaming_urls'][0]['url'])
 
 ####################################################################################################
 def GetSendungMenu(sender, url):
 	dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
 	xml = XML.ElementFromURL(url, True)
-	#try:
-	sendung = xml.xpath('//div[@class="act_sendung_info"]')[0]
-	video_url = sendung.find('a').get('href')
-	video_url_parsed = urlparse.urlsplit(video_url)
-	video = SF_ROOT + '/cvis/segment/' + video_url_parsed.query.split('=',2)[1].split(';',2)[0] + '/.json?nohttperr=1;omit_video_segments_validity=1;omit_related_segments=1'
-	video_http = HTTP.Request(video)
-	video_http = video_http[10:-2]
-	video_json = JSON.ObjectFromString(video_http)
-	summary = ""
-	for info_item in sendung.xpath('//ul[@class="sendung_beitraege"]/li/a'):
-		summary = summary + info_item.text + "\n"
-	try: thumb = sendung.xpath('a/img')[0].get('src')
-	except: thumb = None
-	dir.Append(SelectVideoMethod(video_json, thumb=thumb, summary=summary))
-	#except:
-	#	pass
+	try:
+		sendung = xml.xpath('//div[@class="act_sendung_info"]')[0]
+		video_url = sendung.find('a').get('href')
+		video_url_parsed = urlparse.urlsplit(video_url)
+		video = SF_ROOT + '/cvis/segment/' + video_url_parsed.query.split('=',2)[1].split(';',2)[0] + '/.json?nohttperr=1;omit_video_segments_validity=1;omit_related_segments=1'
+		
+		video_http = HTTP.Request(video)
+		video_http = video_http[10:-2]
+		video_json = JSON.ObjectFromString(video_http)
+		title = sendung.xpath('div/h2/a')[0].text
+		summary = ""
+		for info_item in sendung.xpath('//ul[@class="sendung_beitraege"]/li/a'):
+			summary = summary + info_item.text + "\n"
+		try: thumb = sendung.xpath('a/img')[0].get('src')
+		except: thumb = None
+		dir.Append(SelectVideoMethod(video_json, thumb=thumb, summary=summary))
+		dir.Append(Function(VideoItem(GetSendung, title, thumb=thumb, summary=summary), json_url=video))
+	except:
+		pass
 	
 	new_pages = True
 	while(new_pages):
@@ -113,16 +129,14 @@ def GetSendungMenu(sender, url):
 				video_url = SF_ROOT + sendung.xpath('div[@class="left_innner_column"]/a')[0].get('href')
 				video_url_parsed = urlparse.urlsplit(video_url)
 				video = SF_ROOT + '/cvis/segment/' + video_url_parsed.query.split('=',2)[1].split(';',2)[0] + '/.json?nohttperr=1;omit_video_segments_validity=1;omit_related_segments=1'
-				video_http = HTTP.Request(video)
-				video_http = video_http[10:-2]
-				video_json = JSON.ObjectFromString(video_http)
 
+				title = sendung.xpath('div[@class="sendung_content"]/a/strong')[0].text
 				summary = ""
 				for info_item in sendung.xpath('div[@class="sendung_content"]/ul/li/a'):
 					summary = summary + info_item.text + "\n"
 				try: thumb = sendung.xpath('div/a/img[@class="thumbnail"]')[0].get('src')
 				except: thumb = None
-				dir.Append(SelectVideoMethod(video_json, subtitle=None, summary=summary, thumb=thumb))
+				dir.Append(Function(VideoItem(GetSendung, title, thumb=thumb, summary=summary), json_url=video))			
 			except:
 				pass
 		try:
