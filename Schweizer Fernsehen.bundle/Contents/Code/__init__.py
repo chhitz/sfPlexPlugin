@@ -33,6 +33,7 @@ def MainMenu():
     dir.Append(Function(DirectoryItem(GetShowOverview,   title=L("Shows"))))
     dir.Append(Function(DirectoryItem(GetChannelsMenu,    title=L("Channels"))))
     dir.Append(Function(SearchDirectoryItem(Search,       title=L("Search"), prompt=L("Search for Episodes"), thumb=R('search.png'))))
+    dir.Append(PrefsItem(                                 title=L("Preferences")))
     return dir
 
 ####################################################################################################
@@ -63,27 +64,37 @@ def GetShowOverview(sender):
 
 ####################################################################################################
 def SelectVideoMethod(json_result, subtitle=None, thumb=None, art=None, summary=None):
-    best_width = 0
+    best_bitrate = 0
+    quality_str = Prefs.Get("quality")
+    if (quality_str.startswith("High")):
+        quality = 1500
+    elif(quality_str.startswith("Medium")):
+        quality = 1200
+    elif(quality_str.startswith("Low")):
+        quality = 500
+    elif(quality_str.startswith("Very")):
+        quality = 110
+
     for stream in json_result['streaming_urls']:
-        if (stream['codec_video'] == "wmv3"):
-            title = json_result['video']['description_title']
-            duration = ((int(json_result['mark_out']) - int(json_result['mark_in'])) * 1000)
-            video = stream['url']
-            width = int(stream['frame_width'])
-            height = int(stream['frame_height'])
-            return VideoItem(video, width=width, height=height, title=title, summary=summary, duration=duration, thumb=thumb, art=art, subtitle=subtitle)
-        elif (int(stream['frame_width']) > best_width):
+        bitrate = int(stream['bitrate'])
+        if (bitrate > best_bitrate and bitrate <= quality):
+            best_bitrate = bitrate
             best_stream = stream
 
     if best_stream:
-        if (stream['codec_video'] == "vp6f"):
-            title = json_result['video']['description_title']
-            duration = ((int(json_result['mark_out']) - int(json_result['mark_in'])) * 1000)
-            video_parts = stream['url'].split("ondemand/");
+        title = json_result['video']['description_title']
+        duration = ((int(json_result['mark_out']) - int(json_result['mark_in'])) * 1000)
+        video_url = best_stream['url']
+        width = int(best_stream['frame_width'])
+        height = int(best_stream['frame_height'])
+
+        if (best_stream['codec_video'] == "wmv3"):
+            return VideoItem(video_url, width=width, height=height, title=title, summary=summary, duration=duration, thumb=thumb, art=art, subtitle=subtitle)
+
+        elif (best_stream['codec_video'] == "vp6f"):
+            video_parts = video_url.split("ondemand/");
             video = video_parts[0] + "ondemand/"
             clip = "".join(video_parts[1:]).strip(".flv")
-            width = int(stream['frame_width'])
-            height = int(stream['frame_height'])
             return RTMPVideoItem(video, clip=clip, width=width, height=height, title=title, summary=summary, duration=duration, thumb=thumb, art=art, subtitle=subtitle)
 
 ####################################################################################################

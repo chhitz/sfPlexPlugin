@@ -1,0 +1,14 @@
+[
+	{
+		"id":      "quality",
+		"label":   "Video Quality",
+		"type":    "enum",
+		"values":  [
+			"Very Low (110 kbit/s)",
+			"Low (500 kbit/s)",
+			"Medium (1200 kbit/s)",
+			"High (1500 kbit/s)"
+		],
+		"default": "High (1500 kbit/s)",
+	},
+]
