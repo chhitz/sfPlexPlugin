@@ -12,5 +12,13 @@
     "High (1500 kbit/s)": "Hoch (1500 kbit/s)",
     "Medium (1200 kbit/s)": "Mittel (1200 kbit/s)",
     "Low (500 kbit/s)": "Tief (500 kbit/s)",
-    "Very Low (110 kbit/s)": "Sehr tief (110 kbit/s)"
+    "Very Low (110 kbit/s)": "Sehr tief (110 kbit/s)",
+    "January": "Januar",
+    "February": "Februar",
+    "March": "März",
+    "May": "Mai",
+    "June": "Juni",
+    "July": "Juli",
+    "October": "Oktober",
+    "December": "Dezember"
 }
