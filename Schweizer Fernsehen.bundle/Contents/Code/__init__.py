@@ -79,10 +79,12 @@ def SelectVideoMethod(json_result, subtitle=None, thumb=None, art=None, summary=
         if (stream['codec_video'] == "vp6f"):
             title = json_result['video']['description_title']
             duration = ((int(json_result['mark_out']) - int(json_result['mark_in'])) * 1000)
-            video = stream['url']
+            video_parts = stream['url'].split("ondemand/");
+            video = video_parts[0] + "ondemand/"
+            clip = "".join(video_parts[1:]).strip(".flv")
             width = int(stream['frame_width'])
             height = int(stream['frame_height'])
-            return RTMPVideoItem(video, width=width, height=height, title=title, summary=summary, duration=duration, thumb=thumb, art=art, subtitle=subtitle)
+            return RTMPVideoItem(video, clip=clip, width=width, height=height, title=title, summary=summary, duration=duration, thumb=thumb, art=art, subtitle=subtitle)
 
 ####################################################################################################
 def GetJSON(video_url):
