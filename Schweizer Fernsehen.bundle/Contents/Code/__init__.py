@@ -187,36 +187,42 @@ def GetPreviousEpisodes(sender, url):
     return dir
 
 ####################################################################################################
-def Search(sender, query, page=None):
+def Search(sender, query, page=None, start_video=0):
     dir = MediaContainer(viewGroup='Details', title2=query)
 
     search_url = SF_SEARCH + '?query=' + query
     if (page):
-        search_url += "&page=" + page
+        search_url += "&page=" + str(page)
 
     xml = XML.ElementFromURL(search_url, True)
     #shows
-    try:
-        shows = xml.xpath('//div[@id="search_result_sendungen"]')[0]
-        for sendung in shows.xpath('div/div[@class="reiter_item"]'):
-            url = SF_ROOT + sendung.xpath('h3/a[@class="title"]')[0].get('href')
-            title = sendung.xpath('h3/a[@class="title"]/strong')[0].text
-            try: thumb = sendung.xpath('h3/a[@class="sendung_img_wrapper"]/img')[0].get('src')
-            except: thumb = None
-            dir.Append(Function(DirectoryItem(GetEpisodeMenu, title=title, thumb=thumb, url=url), url=url))
-    except:
-        pass
+    if start_video == 0:
+        try:
+            shows = xml.xpath('//div[@id="search_result_sendungen"]')[0]
+            for sendung in shows.xpath('div/div[@class="reiter_item"]'):
+                url = SF_ROOT + sendung.xpath('h3/a[@class="title"]')[0].get('href')
+                title = sendung.xpath('h3/a[@class="title"]/strong')[0].text
+                try: thumb = sendung.xpath('h3/a[@class="sendung_img_wrapper"]/img')[0].get('src')
+                except: thumb = None
+                dir.Append(Function(DirectoryItem(GetEpisodeMenu, title=title, thumb=thumb, url=url), url=url))
+        except:
+            pass
 
     #Videos
+    number_shows = 0;
     try:
         shows = xml.xpath('//div[@id="search_result_videos"]')[0]
-        for show in shows.xpath('div[@class="result_video_row"]'):
+        for show in shows.xpath('div[@class="result_video_row"]')[start_video:]:
             video_url = SF_ROOT + show.xpath('div/h3/a[@class="video_title"]')[0].get('href')
             video_json = GetJSON(video_url)
 
             try: thumb = show.xpath('div/h3/a[@class="sendung_img_wrapper"]/img')[0].get('src')
             except: thumb = None
             dir.Append(SelectVideoMethod(video_json, thumb=thumb))
+            number_shows += 1
+            if number_shows == 9:
+                dir.Append(Function(DirectoryItem(Search, title=L("More Results"), url=SF_SEARCH), query=query, page=page, start_video=(start_video + number_shows)))
+                return dir
     except:
         pass
     try:
@@ -232,7 +238,7 @@ def Search(sender, query, page=None):
             pass
 
         if (current_page < max_page):
-            dir.Append(Function(DirectoryItem(Search, title=L("More Results"), url=next_url), query=query, page=(current_page + 1)))
+            dir.Append(Function(DirectoryItem(Search, title=L("More Results"), url=SF_SEARCH), query=query, page=(current_page + 1)))
             return dir
     except:
         #no additional pages
