@@ -63,7 +63,7 @@ def GetShowOverview(sender):
     return dir
 
 ####################################################################################################
-def SelectVideoMethod(json_result, subtitle=None, thumb=None, art=None, summary=None):
+def SelectVideoMethod(json_result, title=None, subtitle=None, thumb=None, art=None, summary=None):
     best_bitrate = 0
     quality_str = Prefs.Get("quality")
     if (quality_str.startswith("High")):
@@ -82,7 +82,8 @@ def SelectVideoMethod(json_result, subtitle=None, thumb=None, art=None, summary=
             best_stream = stream
 
     if best_stream:
-        title = json_result['video']['description_title']
+        if title == None:
+            title = json_result['video']['description_title']
         duration = ((int(json_result['mark_out']) - int(json_result['mark_in'])) * 1000)
         video_url = best_stream['url']
         width = int(best_stream['frame_width'])
@@ -218,7 +219,12 @@ def Search(sender, query, page=None, start_video=0):
 
             try: thumb = show.xpath('div/h3/a[@class="sendung_img_wrapper"]/img')[0].get('src')
             except: thumb = None
-            dir.Append(SelectVideoMethod(video_json, thumb=thumb))
+            try: title = video_json['description_title']
+            except: title = None
+            try: summary = video_json['description_lead']
+            except: summary = None
+            dir.Append(SelectVideoMethod(video_json, title=title, summary=summary, thumb=thumb))
+
             number_shows += 1
             if number_shows == 9:
                 dir.Append(Function(DirectoryItem(Search, title=L("More Results"), url=SF_SEARCH), query=query, page=page, start_video=(start_video + number_shows)))
