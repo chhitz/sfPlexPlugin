@@ -18,7 +18,6 @@ def Start():
     Plugin.AddPrefixHandler(SF_PREFIX, MainMenu, 'Schweizer Fernsehen', 'icon-default.jpg', 'art-default.jpg')
     Plugin.AddViewGroup("Details", viewMode="InfoList", mediaType="items")
     MediaContainer.title1 = 'Schweizer Fernsehen'
-    MediaContainer.content = 'Items'
     MediaContainer.art = R('art-default.jpg')
     HTTP.SetCacheTime(CACHE_INTERVAL)
 
