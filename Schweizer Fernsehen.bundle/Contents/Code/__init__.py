@@ -32,7 +32,7 @@ def MainMenu():
     dir.Append(Function(DirectoryItem(GetShowOverview,   title=L("Shows"), thumb=R('icon-default.jpg'))))
     #dir.Append(Function(DirectoryItem(GetChannelsMenu,    title=L("Channels"))))
     dir.Append(Function(SearchDirectoryItem(Search,       title=L("Search"), prompt=L("Search for Episodes"), thumb=R('search.png'))))
-    dir.Append(PrefsItem(                                 title=L("Preferences"), thumb=R('icon-prefs.png')))
+    #dir.Append(PrefsItem(                                 title=L("Preferences"), thumb=R('icon-prefs.png')))
     return dir
 
 ####################################################################################################
@@ -121,7 +121,8 @@ def GetEpisodeMenu(sender, url):
             summary = summary + info_item.text + "\n"
         try: thumb = show.xpath('a/img')[0].get('src')
         except: thumb = None
-        dir.Append(SelectVideoMethod(video_json, thumb=thumb, summary=summary))
+        dir.Append(WebVideoItem(SF_ROOT + video_url, title=title, thumb=thumb, summary=summary))
+        #dir.Append(SelectVideoMethod(video_json, thumb=thumb, summary=summary))
     except:
         pass
 
@@ -149,7 +150,8 @@ def GetPreviousEpisodes(sender, url):
                 summary = summary + info_item.text + "\n"
             try: thumb = show.xpath('div/a/img[@class="thumbnail"]')[0].get('src')
             except: thumb = None
-            dir.Append(SelectVideoMethod(video_json, thumb=thumb, summary=summary))
+            dir.Append(WebVideoItem(video_url, title=title, thumb=thumb, summary=summary))
+            #dir.Append(SelectVideoMethod(video_json, thumb=thumb, summary=summary))
         except:
             pass
 
