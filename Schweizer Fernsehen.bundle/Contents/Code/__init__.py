@@ -62,58 +62,12 @@ def GetShowOverview(sender):
     return dir
 
 ####################################################################################################
-def SelectVideoMethod(json_result, title=None, subtitle=None, thumb=None, art=None, summary=None):
-    best_bitrate = 0
-    quality_str = Prefs.Get("quality")
-    if (quality_str.startswith("High")):
-        quality = 1500
-    elif(quality_str.startswith("Medium")):
-        quality = 1200
-    elif(quality_str.startswith("Low")):
-        quality = 500
-    elif(quality_str.startswith("Very")):
-        quality = 110
-
-    for stream in json_result['streaming_urls']:
-        bitrate = int(stream['bitrate'])
-        if (bitrate > best_bitrate and bitrate <= quality):
-            best_bitrate = bitrate
-            best_stream = stream
-
-    if best_stream:
-        if title == None:
-            title = json_result['video']['description_title']
-        duration = ((int(json_result['mark_out']) - int(json_result['mark_in'])) * 1000)
-        video_url = best_stream['url']
-        width = int(best_stream['frame_width'])
-        height = int(best_stream['frame_height'])
-
-        if (best_stream['codec_video'] == "wmv3"):
-            return VideoItem(video_url, width=width, height=height, title=title, summary=summary, duration=duration, thumb=thumb, art=art, subtitle=subtitle)
-
-        elif (best_stream['codec_video'] == "vp6f"):
-            video_parts = video_url.split("ondemand/");
-            video = video_parts[0] + "ondemand/"
-            clip = "".join(video_parts[1:]).strip(".flv")
-            return RTMPVideoItem(video, clip=clip, width=width, height=height, title=title, summary=summary, duration=duration, thumb=thumb, art=art, subtitle=subtitle)
-
-####################################################################################################
-def GetJSON(video_url):
-    video_url_parsed = urlparse.urlsplit(video_url)
-    video = SF_ROOT + '/cvis/segment/' + video_url_parsed.query.split('=',2)[1].split(';',2)[0] + '/.json?nohttperr=1;omit_video_segments_validity=1;omit_related_segments=1'
-
-    video_http = HTTP.Request(video)
-    video_http = video_http[10:-2]
-    return JSON.ObjectFromString(video_http)
-
-####################################################################################################
 def GetEpisodeMenu(sender, url):
     dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
     xml = XML.ElementFromURL(url, True)
     try:
         show = xml.xpath('//div[@class="act_sendung_info"]')[0]
         video_url = show.find('a').get('href')
-        video_json = GetJSON(video_url)
 
         title = show.xpath('div/h2/a')[0].text
         summary = ""
@@ -122,7 +76,6 @@ def GetEpisodeMenu(sender, url):
         try: thumb = show.xpath('a/img')[0].get('src')
         except: thumb = None
         dir.Append(WebVideoItem(SF_ROOT + video_url, title=title, thumb=thumb, summary=summary))
-        #dir.Append(SelectVideoMethod(video_json, thumb=thumb, summary=summary))
     except:
         pass
 
@@ -142,7 +95,6 @@ def GetPreviousEpisodes(sender, url):
     for show in previous.xpath('//div[@class="comment_row"]'):
         try:
             video_url = SF_ROOT + show.xpath('div[@class="left_innner_column"]/a')[0].get('href')
-            video_json = GetJSON(video_url)
 
             title = show.xpath('div[@class="sendung_content"]/a/strong')[0].text
             summary = ""
@@ -151,7 +103,6 @@ def GetPreviousEpisodes(sender, url):
             try: thumb = show.xpath('div/a/img[@class="thumbnail"]')[0].get('src')
             except: thumb = None
             dir.Append(WebVideoItem(video_url, title=title, thumb=thumb, summary=summary))
-            #dir.Append(SelectVideoMethod(video_json, thumb=thumb, summary=summary))
         except:
             pass
 
@@ -216,15 +167,14 @@ def Search(sender, query, page=None, start_video=0):
         shows = xml.xpath('//div[@id="search_result_videos"]')[0]
         for show in shows.xpath('div[@class="result_video_row"]')[start_video:]:
             video_url = SF_ROOT + show.xpath('div/h3/a[@class="video_title"]')[0].get('href')
-            video_json = GetJSON(video_url)
 
-            try: thumb = show.xpath('div/h3/a[@class="sendung_img_wrapper"]/img')[0].get('src')
+            try: thumb = show.xpath('a[@class="sendung_img_wrapper"]/img')[0].get('src')
             except: thumb = None
-            try: title = video_json['description_title']
+            try: title = show.xpath('div/h3/a[@class="video_title"]')[0].text
             except: title = None
-            try: summary = video_json['description_lead']
+            try: summary = show.xpath('div/p[@class="video_description"]')[0].text
             except: summary = None
-            dir.Append(SelectVideoMethod(video_json, title=title, summary=summary, thumb=thumb))
+            dir.Append(WebVideoItem(video_url, title=title, thumb=thumb, summary=summary))
 
             number_shows += 1
             if number_shows == 9:
