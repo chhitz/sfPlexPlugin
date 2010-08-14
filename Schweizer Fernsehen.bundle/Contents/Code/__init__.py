@@ -67,7 +67,7 @@ def GetEpisodeMenu(sender, url):
     xml = XML.ElementFromURL(url, True)
     try:
         show = xml.xpath('//div[@class="act_sendung_info"]')[0]
-        video_url = show.find('a').get('href')
+        video_url = show.find('a').get('href').split(';')[0]
 
         title = show.xpath('div/h2/a')[0].text
         summary = ""
@@ -94,7 +94,7 @@ def GetPreviousEpisodes(sender, url):
     previous = xml.xpath('//div[@class="prev_sendungen"]')[0]
     for show in previous.xpath('//div[@class="comment_row"]'):
         try:
-            video_url = SF_ROOT + show.xpath('div[@class="left_innner_column"]/a')[0].get('href')
+            video_url = SF_ROOT + show.xpath('div[@class="left_innner_column"]/a')[0].get('href').split(';')[0]
 
             title = show.xpath('div[@class="sendung_content"]/a/strong')[0].text
             summary = ""
@@ -166,7 +166,7 @@ def Search(sender, query, page=None, start_video=0):
     try:
         shows = xml.xpath('//div[@id="search_result_videos"]')[0]
         for show in shows.xpath('div[@class="result_video_row"]')[start_video:]:
-            video_url = SF_ROOT + show.xpath('div/h3/a[@class="video_title"]')[0].get('href')
+            video_url = SF_ROOT + show.xpath('div/h3/a[@class="video_title"]')[0].get('href').split(';')[0]
 
             try: thumb = show.xpath('a[@class="sendung_img_wrapper"]/img')[0].get('src')
             except: thumb = None
