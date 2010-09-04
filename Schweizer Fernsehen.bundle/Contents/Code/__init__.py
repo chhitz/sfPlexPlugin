@@ -6,7 +6,7 @@ from PMS.Objects import *
 from PMS.Shortcuts import *
 
 SF_PREFIX   = '/video/schweizerfernsehen'
-SF_ROOT     = 'http://videoportal.sf.tv'
+SF_ROOT     = 'http://www.videoportal.sf.tv'
 SF_SHOWS    = SF_ROOT + '/sendungen'
 SF_CHANNELS = SF_ROOT + '/channels'
 SF_SEARCH   = SF_ROOT + '/suche'
