@@ -6,7 +6,7 @@ from PMS.Objects import *
 from PMS.Shortcuts import *
 
 SF_PREFIX   = '/video/schweizerfernsehen'
-SF_ROOT     = 'http://videoportal.sf.tv'
+SF_ROOT     = 'http://www.videoportal.sf.tv'
 SF_SHOWS    = SF_ROOT + '/sendungen'
 SF_CHANNELS = SF_ROOT + '/channels'
 SF_SEARCH   = SF_ROOT + '/suche'
@@ -91,10 +91,11 @@ def SelectVideoMethod(json_result, title=None, subtitle=None, thumb=None, art=No
         if (best_stream['codec_video'] == "wmv3"):
             return VideoItem(video_url, width=width, height=height, title=title, summary=summary, duration=duration, thumb=thumb, art=art, subtitle=subtitle)
 
-        elif (best_stream['codec_video'] == "vp6f"):
-            video_parts = video_url.split("ondemand/");
-            video = video_parts[0] + "ondemand/"
-            clip = "".join(video_parts[1:]).strip(".flv")
+        elif (best_stream['codec_video'] == "h264"):
+            video_parts = video_url.split("/mp4:");
+            video = video_parts[0]
+            clip = "".join(video_parts[1:])#.rstrip(".mp4")
+            Log("video: " + video + " clip: " + clip)
             return RTMPVideoItem(video, clip=clip, width=width, height=height, title=title, summary=summary, duration=duration, thumb=thumb, art=art, subtitle=subtitle)
 
 ####################################################################################################
@@ -112,7 +113,7 @@ def GetEpisodeMenu(sender, url):
     xml = XML.ElementFromURL(url, True)
     try:
         show = xml.xpath('//div[@class="act_sendung_info"]')[0]
-        video_url = show.find('a').get('href')
+        video_url = show.find('a').get('href').split(';')[0]
         video_json = GetJSON(video_url)
 
         title = show.xpath('div/h2/a')[0].text
@@ -121,7 +122,7 @@ def GetEpisodeMenu(sender, url):
             summary = summary + info_item.text + "\n"
         try: thumb = show.xpath('a/img')[0].get('src')
         except: thumb = None
-        dir.Append(SelectVideoMethod(video_json, thumb=thumb, summary=summary))
+        dir.Append(SelectVideoMethod(video_json, title=title, thumb=thumb, summary=summary))
     except:
         pass
 
@@ -140,7 +141,7 @@ def GetPreviousEpisodes(sender, url):
     previous = xml.xpath('//div[@class="prev_sendungen"]')[0]
     for show in previous.xpath('//div[@class="comment_row"]'):
         try:
-            video_url = SF_ROOT + show.xpath('div[@class="left_innner_column"]/a')[0].get('href')
+            video_url = SF_ROOT + show.xpath('div[@class="left_innner_column"]/a')[0].get('href').split(';')[0]
             video_json = GetJSON(video_url)
 
             title = show.xpath('div[@class="sendung_content"]/a/strong')[0].text
@@ -149,7 +150,7 @@ def GetPreviousEpisodes(sender, url):
                 summary = summary + info_item.text + "\n"
             try: thumb = show.xpath('div/a/img[@class="thumbnail"]')[0].get('src')
             except: thumb = None
-            dir.Append(SelectVideoMethod(video_json, thumb=thumb, summary=summary))
+            dir.Append(SelectVideoMethod(video_json, title=title, thumb=thumb, summary=summary))
         except:
             pass
 
@@ -213,7 +214,7 @@ def Search(sender, query, page=None, start_video=0):
     try:
         shows = xml.xpath('//div[@id="search_result_videos"]')[0]
         for show in shows.xpath('div[@class="result_video_row"]')[start_video:]:
-            video_url = SF_ROOT + show.xpath('div/h3/a[@class="video_title"]')[0].get('href')
+            video_url = SF_ROOT + show.xpath('div/h3/a[@class="video_title"]')[0].get('href').split(';')[0]
             video_json = GetJSON(video_url)
 
             try: thumb = show.xpath('div/h3/a[@class="sendung_img_wrapper"]/img')[0].get('src')
