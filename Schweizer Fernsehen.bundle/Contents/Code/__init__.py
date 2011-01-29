@@ -56,7 +56,11 @@ def GetShowOverview(sender):
         key = SF_ROOT + show.find('a').get('href')
         title = show.xpath('a[@class="sendung_name"]')[0].text
         description = show.xpath('p[@class="az_description"]')[0].text
-        try: thumb = show.xpath('a/img')[0].get('src')
+        try:
+            if Dict.HasKey(title):
+                thumb = Dict.Get(title)
+            else:
+                thumb = show.xpath('a/img')[0].get('src')
         except: thumb = None
         dir.Append(Function(DirectoryItem(GetEpisodeMenu, title=title, thumb=thumb, summary=description, url=key), url=key))
     return dir
@@ -73,13 +77,15 @@ def GetEpisodeMenu(sender, url):
         summary = ""
         for info_item in show.xpath('//ul[@class="sendung_beitraege"]/li/a'):
             summary = summary + info_item.text + "\n"
-        try: thumb = show.xpath('a/img')[0].get('src')
+        try:
+            thumb = show.xpath('a/img')[0].get('src')
+            Dict.Set(sender.itemTitle, thumb)
         except: thumb = None
         dir.Append(WebVideoItem(SF_ROOT + video_url, title=title, thumb=thumb, summary=summary))
     except:
         pass
 
-    dir.Extend(GetPreviousEpisodes(sender, url))
+    dir.Extend(GetPreviousEpisodes(sender, url, sender.itemTitle))
 
     if (len(dir) == 0):
         dir.Append(DirectoryItem("none", L("No Episodes")))
@@ -87,8 +93,8 @@ def GetEpisodeMenu(sender, url):
     return dir
 
 ####################################################################################################
-def GetPreviousEpisodes(sender, url):
-    dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
+def GetPreviousEpisodes(sender, url, showTitle):
+    dir = MediaContainer(viewGroup='Details', title2=showTitle)
     xml = XML.ElementFromURL(url, True)
 
     previous = xml.xpath('//div[@class="prev_sendungen"]')[0]
@@ -100,7 +106,11 @@ def GetPreviousEpisodes(sender, url):
             summary = ""
             for info_item in show.xpath('div[@class="sendung_content"]/ul/li/a'):
                 summary = summary + info_item.text + "\n"
-            try: thumb = show.xpath('div/a/img[@class="thumbnail"]')[0].get('src')
+            try:
+                if Dict.HasKey(showTitle):
+                    thumb = Dict.Get(showTitle)
+                else:
+                    thumb = show.xpath('div/a/img[@class="thumbnail"]')[0].get('src')
             except: thumb = None
             dir.Append(WebVideoItem(video_url, title=title, thumb=thumb, summary=summary))
         except:
@@ -121,7 +131,7 @@ def GetPreviousEpisodes(sender, url):
 
         if (current_page < max_page):
             next_url = base_url + "&page=" + str(current_page + 1)
-            dir.Append(Function(DirectoryItem(GetPreviousEpisodes, title=L("Previous Episodes"), url=next_url), url=next_url))
+            dir.Append(Function(DirectoryItem(GetPreviousEpisodes, title=L("Previous Episodes"), url=next_url), url=next_url, showTitle=showTitle))
             return dir
     except:
         #no additional pages
@@ -135,7 +145,7 @@ def GetPreviousEpisodes(sender, url):
     else:
         prev_month = datetime.date.today() - datetime.timedelta(days=29)
     url = url + "&period=" + str(prev_month.year) + "-" + "%02d" % prev_month.month
-    dir.Append(Function(DirectoryItem(GetPreviousEpisodes, title=L("Episodes from ") + L(prev_month.strftime('%B')), url=url), url=url))
+    dir.Append(Function(DirectoryItem(GetPreviousEpisodes, title=L("Episodes from ") + L(prev_month.strftime('%B')), url=url), url=url, showTitle=showTitle))
 
     return dir
 
