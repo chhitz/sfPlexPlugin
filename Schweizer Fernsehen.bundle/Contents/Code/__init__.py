@@ -145,7 +145,7 @@ def GetPreviousEpisodes(sender, url, showTitle, previousEpisode=False):
     url = url + "&period=" + str(prev_month.year) + "-" + "%02d" % prev_month.month
     
     if previousEpisode or len(dir) > 0 or prev_month.year < datetime.date.today().year - 3:
-        dir.Append(Function(DirectoryItem(GetPreviousEpisodes, title=L("Episodes from ") + L(prev_month.strftime('%B')), url=url), url=url, showTitle=showTitle))
+        dir.Append(Function(DirectoryItem(GetPreviousEpisodes, title=L("Episodes from ") + L(prev_month.strftime('%B')) + " " + str(prev_month.year), url=url), url=url, showTitle=showTitle))
     else:
         dir.Extend(GetPreviousEpisodes(sender, url, showTitle))
 
