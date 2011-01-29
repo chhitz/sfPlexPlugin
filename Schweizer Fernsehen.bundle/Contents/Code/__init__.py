@@ -30,9 +30,7 @@ def UpdateCache():
 def MainMenu():
     dir = MediaContainer()
     dir.Append(Function(DirectoryItem(GetShowOverview,   title=L("Shows"), thumb=R('icon-default.jpg'))))
-    #dir.Append(Function(DirectoryItem(GetChannelsMenu,    title=L("Channels"))))
     dir.Append(Function(SearchDirectoryItem(Search,       title=L("Search"), prompt=L("Search for Episodes"), thumb=R('search.png'))))
-    #dir.Append(PrefsItem(                                 title=L("Preferences"), thumb=R('icon-prefs.png')))
     return dir
 
 ####################################################################################################
