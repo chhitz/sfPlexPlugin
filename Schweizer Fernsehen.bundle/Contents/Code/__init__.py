@@ -80,7 +80,7 @@ def GetEpisodeMenu(sender, url):
     except:
         pass
 
-    dir.Extend(GetPreviousEpisodes(sender, url, sender.itemTitle))
+    dir.Extend(GetPreviousEpisodes(sender, url, sender.itemTitle, previousEpisode=(len(dir) > 0)))
 
     if (len(dir) == 0):
         dir.Append(DirectoryItem("none", L("No Episodes")))
@@ -88,7 +88,7 @@ def GetEpisodeMenu(sender, url):
     return dir
 
 ####################################################################################################
-def GetPreviousEpisodes(sender, url, showTitle):
+def GetPreviousEpisodes(sender, url, showTitle, previousEpisode=False):
     dir = MediaContainer(viewGroup='Details', title2=showTitle)
     xml = HTML.ElementFromURL(url)
 
@@ -135,12 +135,19 @@ def GetPreviousEpisodes(sender, url, showTitle):
     if base_url.find("&period=") != -1:
         (url, a, date) = base_url.rpartition("&period=")
         (year, a, month) = date.partition("-")
-        current = datetime.date(year=int(year), month=int(month), day=1)
-        prev_month = current - datetime.timedelta(days=29)
+        year = int(year)
+        month = int(month)
     else:
-        prev_month = datetime.date.today() - datetime.timedelta(days=29)
+        year = datetime.date.today().year
+        month = datetime.date.today().month
+    
+    prev_month = datetime.date(year=year if month != 1 else (year - 1), month=(month - 1) if month > 1 else 12, day=1)
     url = url + "&period=" + str(prev_month.year) + "-" + "%02d" % prev_month.month
-    dir.Append(Function(DirectoryItem(GetPreviousEpisodes, title=L("Episodes from ") + L(prev_month.strftime('%B')), url=url), url=url, showTitle=showTitle))
+    
+    if previousEpisode or len(dir) > 0 or prev_month.year < datetime.date.today().year - 3:
+        dir.Append(Function(DirectoryItem(GetPreviousEpisodes, title=L("Episodes from ") + L(prev_month.strftime('%B')), url=url), url=url, showTitle=showTitle))
+    else:
+        dir.Extend(GetPreviousEpisodes(sender, url, showTitle))
 
     return dir
 
