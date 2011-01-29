@@ -1,9 +1,6 @@
 import re, string
 import datetime
 import urlparse
-from PMS import *
-from PMS.Objects import *
-from PMS.Shortcuts import *
 
 SF_PREFIX   = '/video/schweizerfernsehen'
 SF_ROOT     = 'http://www.videoportal.sf.tv'
@@ -36,7 +33,7 @@ def MainMenu():
 ####################################################################################################
 def GetChannelsMenu(sender):
     dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
-    xml = XML.ElementFromURL(SF_CHANNELS, True)
+    xml = HTML.ElementFromURL(SF_CHANNELS)
     for show in xml.xpath('//div[@class="channel"]'):
         url = SF_ROOT + show.xpath('div[@class="keyvisual"]/a')[0].get('href')
         title = show.xpath('div[@class="keyvisual"]/a/img')[0].get('alt')
@@ -49,14 +46,14 @@ def GetChannelsMenu(sender):
 ####################################################################################################
 def GetShowOverview(sender):
     dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
-    xml = XML.ElementFromURL(SF_SHOWS, True)
+    xml = HTML.ElementFromURL(SF_SHOWS)
     for show in xml.xpath('//div[@class="az_row"]'):
         key = SF_ROOT + show.find('a').get('href')
         title = show.xpath('a[@class="sendung_name"]')[0].text
         description = show.xpath('p[@class="az_description"]')[0].text
         try:
-            if Dict.HasKey(title):
-                thumb = Dict.Get(title)
+            if title in Dict:
+                thumb = Dict[title]
             else:
                 thumb = show.xpath('a/img')[0].get('src')
         except: thumb = None
@@ -66,7 +63,7 @@ def GetShowOverview(sender):
 ####################################################################################################
 def GetEpisodeMenu(sender, url):
     dir = MediaContainer(viewGroup='Details', title2=sender.itemTitle)
-    xml = XML.ElementFromURL(url, True)
+    xml = HTML.ElementFromURL(url)
     try:
         show = xml.xpath('//div[@class="act_sendung_info"]')[0]
         video_url = show.find('a').get('href').split(';')[0]
@@ -77,7 +74,7 @@ def GetEpisodeMenu(sender, url):
             summary = summary + info_item.text + "\n"
         try:
             thumb = show.xpath('a/img')[0].get('src')
-            Dict.Set(sender.itemTitle, thumb)
+            Dict[sender.itemTitle] = thumb
         except: thumb = None
         dir.Append(WebVideoItem(SF_ROOT + video_url, title=title, thumb=thumb, summary=summary))
     except:
@@ -93,7 +90,7 @@ def GetEpisodeMenu(sender, url):
 ####################################################################################################
 def GetPreviousEpisodes(sender, url, showTitle):
     dir = MediaContainer(viewGroup='Details', title2=showTitle)
-    xml = XML.ElementFromURL(url, True)
+    xml = HTML.ElementFromURL(url)
 
     previous = xml.xpath('//div[@class="prev_sendungen"]')[0]
     for show in previous.xpath('//div[@class="comment_row"]'):
@@ -105,8 +102,8 @@ def GetPreviousEpisodes(sender, url, showTitle):
             for info_item in show.xpath('div[@class="sendung_content"]/ul/li/a'):
                 summary = summary + info_item.text + "\n"
             try:
-                if Dict.HasKey(showTitle):
-                    thumb = Dict.Get(showTitle)
+                if showTitle in Dict:
+                    thumb = Dict[showTitle]
                 else:
                     thumb = show.xpath('div/a/img[@class="thumbnail"]')[0].get('src')
             except: thumb = None
@@ -155,7 +152,7 @@ def Search(sender, query, page=None, start_video=0):
     if (page):
         search_url += "&page=" + str(page)
 
-    xml = XML.ElementFromURL(search_url, True)
+    xml = HTML.ElementFromURL(search_url)
     #shows
     if start_video == 0:
         try:
