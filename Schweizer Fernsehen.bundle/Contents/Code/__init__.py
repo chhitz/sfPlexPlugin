@@ -1,4 +1,4 @@
-import re, string
+import re
 import datetime
 import urlparse
 
@@ -52,10 +52,7 @@ def GetShowOverview(sender):
         title = show.xpath('a[@class="sendung_name"]')[0].text
         description = show.xpath('p[@class="az_description"]')[0].text
         try:
-            if title in Dict:
-                thumb = Dict[title]
-            else:
-                thumb = show.xpath('a/img')[0].get('src')
+            thumb = re.sub("width=\d+", "width=200", show.xpath('a/img')[0].get('src'))
         except: thumb = None
         dir.Append(Function(DirectoryItem(GetEpisodeMenu, title=title, thumb=thumb, summary=description, url=key), url=key))
     return dir
@@ -73,8 +70,7 @@ def GetEpisodeMenu(sender, url):
         for info_item in show.xpath('//ul[@class="sendung_beitraege"]/li/a'):
             summary = summary + info_item.text + "\n"
         try:
-            thumb = show.xpath('a/img')[0].get('src')
-            Dict[sender.itemTitle] = thumb
+            thumb = re.sub("width=\d+", "width=200", show.xpath('a/img')[0].get('src'))
         except: thumb = None
         dir.Append(WebVideoItem(SF_ROOT + video_url, title=title, thumb=thumb, summary=summary))
     except:
@@ -102,10 +98,7 @@ def GetPreviousEpisodes(sender, url, showTitle, previousEpisode=False):
             for info_item in show.xpath('div[@class="sendung_content"]/ul/li/a'):
                 summary = summary + info_item.text + "\n"
             try:
-                if showTitle in Dict:
-                    thumb = Dict[showTitle]
-                else:
-                    thumb = show.xpath('div/a/img[@class="thumbnail"]')[0].get('src')
+                thumb = re.sub("width=\d+", "width=200", show.xpath('div/a/img[@class="thumbnail"]')[0].get('src'))
             except: thumb = None
             dir.Append(WebVideoItem(video_url, title=title, thumb=thumb, summary=summary))
         except:
