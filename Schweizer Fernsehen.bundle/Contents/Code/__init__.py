@@ -12,7 +12,7 @@ CACHE_INTERVAL = 3600
 
 ####################################################################################################
 def Start():
-    Plugin.AddPrefixHandler(SF_PREFIX, GetShowOverview, 'Schweizer Fernsehen', 'icon-default.jpg', 'art-default.jpg')
+    Plugin.AddPrefixHandler(SF_PREFIX, GetShowOverview, 'Schweizer Fernsehen', 'icon-default.png', 'art-default.jpg')
     Plugin.AddViewGroup("Details", viewMode="InfoList", mediaType="items")
     MediaContainer.title1 = 'Schweizer Fernsehen'
     MediaContainer.art = R('art-default.jpg')
