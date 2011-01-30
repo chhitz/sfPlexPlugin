@@ -16,7 +16,7 @@ def Start():
     Plugin.AddViewGroup("Details", viewMode="InfoList", mediaType="items")
     MediaContainer.title1 = 'Schweizer Fernsehen'
     MediaContainer.art = R('art-default.jpg')
-    HTTP.SetCacheTime(CACHE_INTERVAL)
+    HTTP.CacheTime = CACHE_INTERVAL
 
 ####################################################################################################
 def UpdateCache():
